@@ -1,0 +1,116 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const { Client, Pool} = require('pg');
+const cors = require('cors') 
+
+const app = express();
+const port = 3000;
+
+app.use(cors()); 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+const db = new Client({
+  user: 'sai',
+  host: '127.0.0.1',
+  database: 'classconnect',
+  password: '1445',
+  port: 5432, 
+});
+
+db.connect();
+
+app.post("/register", async (req, res) => {
+  const username = req.body.username;
+  const email = req.body.email;
+  const password = req.body.password;
+  const confirmPassword = req.body['password-confirm'];
+
+  if (!username || !email || !password || !confirmPassword) {
+    return res.status(400).send("All fields are required");
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).send("Passwords do not match");
+  }
+
+  try {
+    const exist = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    
+    if (exist.rows.length > 0) {
+      return res.status(400).send("User already exists");
+    }
+
+    await db.query("INSERT INTO users (email, name, password) VALUES ($1, $2, $3)", [email, username, password]);
+    res.status(201).send("Registration successful Now Login to Continue");
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
+
+
+app.post("/login", async (req, res) => {
+  const email = req.body.useremail;
+  const password = req.body.userpassword;
+  const exist = await db.query(
+    "SELECT * FROM users WHERE email = $1", [email]
+  );
+  if (exist.rows.length > 0) {
+    const user = exist.rows[0];
+    const storedPassword = user.password;
+    const username = user.name;
+    if (storedPassword === password) {
+      res.json({ status: "logged", name: username });
+    } 
+    else {
+      res.json({ status: "Incorrect password" });
+    }
+  } else {
+    res.json({ status: "User doesn't exist" });
+   
+  }
+});
+
+
+app.post("/contact", async (req, res) => {
+  const name = req.body.name;
+  const email = req.body.email;
+  const subject = req.body.subject;
+  const message = req.body.message;
+  const exist = await db.query(
+    "SELECT * FROM users WHERE email = $1", [email]
+  );
+  if (exist.rows.length > 0) {
+    await db.query("INSERT INTO queries (name, email, subject, message) VALUES ($1, $2, $3, $4)", [name, email,subject,message]);
+    res.json({ status: "sent" });
+  } 
+  else {
+    res.json({ status: "User doesn't exist Register to contact" });
+  }
+
+});
+
+
+
+app.post('/attendance', async (req, res) => {
+  const { email, status, percentage, joinTime, leaveTime, roomId } = req.body;
+
+  try {
+    const query = 'INSERT INTO attendance (room_id, email, status, percentage, join_time, leave_time) VALUES ($1, $2, $3, $4, $5, $6)';
+    const values = [roomId, email, status, percentage, joinTime, leaveTime];
+
+    await db.query(query, values);
+    res.status(201).send('Attendance data stored successfully');
+  } catch (err) {
+    console.error('Error storing attendance data:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});

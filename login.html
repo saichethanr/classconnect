@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassConnect</title>
+    <link rel="stylesheet" href="loginstyle.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <main class="card-container slideUp-animation">
+        <div class="image-container">
+            <img src="image.jpg" class="illustration" alt="">
+            <pre class="quote">Welcome Back!!</pre>
+        </div>
+        <form action="/login" method="POST">
+            <div class="form-container slideRight-animation">
+                <h1 class="form-header">
+                    Login Here
+                </h1>
+                <div class="input-container">
+                    <label for="useremail"></label>
+                    <input type="text" name="useremail" id="useremail" required>
+                    <span>Email</span>
+                    <div class="error"></div>
+                </div>
+                <div class="input-container">
+                    <label for="userpassword"></label>
+                    <input type="password" name="userpassword" id="userpassword" class="user-password" required>
+                    <span>Password</span>
+                    <div class="error"></div>
+                </div>
+                <div id="btm">
+                    <button type="submit" class="submit-btn">Login</button>
+                </div>
+            </div>
+        </form>
+    </main>
+</body>
+
+<script>
+    document.querySelector('form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const email = formData.get('useremail');
+        const password = formData.get('userpassword');
+    
+        if (!email || !password) {
+            alert("Any form field cannot be empty");
+            document.querySelector('form').reset();
+            return; // Prevent further execution
+        }
+    
+        const formObject = {};
+        formData.forEach((value, key) => {
+            formObject[key] = value;
+        });
+    
+        try {
+            const response = await fetch('http://localhost:3000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formObject),
+            });
+    
+            const result = await response.json();
+    
+            if (result.status === "logged") {
+                localStorage.setItem('status', 'yes');
+                localStorage.setItem('email',email);
+                localStorage.setItem('name', result.name); // Assuming the response has a 'name' field
+                window.location.href = 'homepage.html';
+            } else {
+                localStorage.setItem('status', 'no');
+                localStorage.setItem('name', '');
+                localStorage.setItem('email','');
+                alert(result.status);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again later.');
+        }
+    });
+    
+
+</script>
+</html>
