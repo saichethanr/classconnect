@@ -69,14 +69,16 @@
             const result = await response.json();
     
             if (result.status === "logged") {
-                localStorage.setItem('status', 'yes');
-                localStorage.setItem('email',email);
-                localStorage.setItem('name', result.name); // Assuming the response has a 'name' field
+                const userKey = `user_${email}`;
+                const userData = {
+                    status: 'yes',
+                    email: email,
+                    name: result.name
+                };
+                localStorage.setItem(userKey, JSON.stringify(userData));
+                localStorage.setItem('currentUser', userKey); // Track the currently logged-in user
                 window.location.href = 'homepage.html';
             } else {
-                localStorage.setItem('status', 'no');
-                localStorage.setItem('name', '');
-                localStorage.setItem('email','');
                 alert(result.status);
             }
         } catch (error) {

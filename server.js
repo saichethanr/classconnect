@@ -63,7 +63,7 @@ app.post("/login", async (req, res) => {
     const storedPassword = user.password;
     const username = user.name;
     if (storedPassword === password) {
-      res.json({ status: "logged", name: username });
+      res.json({ status: "logged", name: username ,email:email});
     } 
     else {
       res.json({ status: "Incorrect password" });
@@ -99,8 +99,8 @@ app.post('/attendance', async (req, res) => {
   const { email, status, percentage, joinTime, leaveTime, roomId } = req.body;
 
   try {
-    const query = 'INSERT INTO attendance (room_id, email, status, percentage, join_time, leave_time) VALUES ($1, $2, $3, $4, $5, $6)';
-    const values = [roomId, email, status, percentage, joinTime, leaveTime];
+    const query = 'INSERT INTO attendance (email, status, percentage, join_time, leave_time) VALUES ($1, $2, $3, $4, $5)';
+    const values = [ email, status, percentage, joinTime, leaveTime];
 
     await db.query(query, values);
     res.status(201).send('Attendance data stored successfully');

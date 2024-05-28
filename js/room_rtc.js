@@ -177,10 +177,21 @@ let calculateAttendance = (memberId) => {
     storeAttendanceInDatabase(memberId, attendanceStatus, attendancePercentage, joinTime, leaveTime);
 };
 
-let storeAttendanceInDatabase = async (memberId, status, percentage, joinTime, leaveTime) => {
-    const em = localStorage.getItem('email');
+let storeAttendanceInDatabase = async (memberId, status, percentage, joinTime, leaveTime, roomId) => {
+    const currentUserKey = localStorage.getItem('currentUser');
+    if (!currentUserKey) {
+        console.error('No user is currently logged in.');
+        return;
+    }
+
+    const currentUserData = JSON.parse(localStorage.getItem(currentUserKey));
+    if (!currentUserData || !currentUserData.email) {
+        console.error('Failed to retrieve current user data.');
+        return;
+    }
+
     let attendanceData = {
-        email: em,
+        email: currentUserData.email,
         status: status,
         percentage: percentage.toFixed(2),
         joinTime: joinTime.toISOString(),
@@ -206,6 +217,7 @@ let storeAttendanceInDatabase = async (memberId, status, percentage, joinTime, l
         console.error(`Error storing attendance data for ${memberId}:`, error);
     }
 };
+
 
 let toggleMic = async (e) => {
     let button = e.currentTarget;

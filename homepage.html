@@ -298,33 +298,40 @@
 
 
       document.addEventListener('DOMContentLoaded', () => {
-        const status = localStorage.getItem('status');
+        const currentUserKey = localStorage.getItem('currentUser');
         const signout = document.getElementById('logout');
         const lobby = document.getElementById('lobby');
         const signup = document.getElementById('signup');
         const login = document.getElementById('login');
         const userNameDisplay = document.getElementById('userNameDisplay');
         
-        if (status !== "yes") {
+        if (!currentUserKey) {
+            // No user is logged in
             signout.style.display = 'none';
             lobby.style.display = 'none';
         } else {
-            signout.style.display = 'inline';
-            signup.style.display = 'none';
-            login.style.display = 'none';
-            
-            const name = localStorage.getItem('name');
-            if (name && userNameDisplay) {
-              userNameDisplay.style.color = 'white';
-                userNameDisplay.textContent = `Welcome, ${name}`;
+            // User is logged in
+            const currentUserData = JSON.parse(localStorage.getItem(currentUserKey));
+            if (currentUserData && currentUserData.status === 'yes') {
+                signout.style.display = 'inline';
+                signup.style.display = 'none';
+                login.style.display = 'none';
+                
+                const name = currentUserData.name;
+                if (name && userNameDisplay) {
+                    userNameDisplay.style.color = 'white';
+                    userNameDisplay.textContent = `Welcome, ${name}`;
+                }
+            } else {
+                signout.style.display = 'none';
+                lobby.style.display = 'none';
             }
         }
     
         // Adding event listener for signout
         signout.addEventListener('click', () => {
-            localStorage.setItem('status', 'no');
-            localStorage.setItem('name', '');
-            localStorage.setItem('email','');
+            localStorage.removeItem(currentUserKey); // Remove the current user's details
+            localStorage.removeItem('currentUser'); // Remove the reference to the current user
             signout.style.display = 'none';
             lobby.style.display = 'none';
             signup.style.display = 'inline';
@@ -334,6 +341,7 @@
             }
         });
     });
+    
        
 
     </script>
